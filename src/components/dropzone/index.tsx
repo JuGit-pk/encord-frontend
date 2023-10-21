@@ -1,23 +1,22 @@
 import React, { useCallback, useState } from "react";
 import Image from "next/image";
 import Dropzone from "react-dropzone";
-import { PlusCircle, UploadCloud } from "lucide-react";
+import { Loader2, PlusCircle, UploadCloud } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
 import { Button } from "@/components/ui/button";
 import { bytesToMB } from "@/lib/utils";
-import { IImage } from "@/types";
 import { useToast } from "../ui/use-toast";
+import { postImage } from "@/api";
 
-interface IDropzone {
-  setImages: React.Dispatch<React.SetStateAction<IImage[]>>;
-}
-const FileInput: React.FC<IDropzone> = ({ setImages }) => {
+const FileInput = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [fileDropzone, setFileDropzone] = useState<File | null>(null);
   const { toast } = useToast();
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
+      setIsLoading(true);
       const file = acceptedFiles[0];
       const fileType = file.type;
       if (
@@ -25,8 +24,10 @@ const FileInput: React.FC<IDropzone> = ({ setImages }) => {
         fileType === "image/jpg" ||
         fileType === "image/jpeg"
       ) {
+        setIsLoading(false);
         setFileDropzone(file);
       } else {
+        setIsLoading(false);
         toast({
           variant: "destructive",
           title: "Invalid file type",
@@ -37,19 +38,30 @@ const FileInput: React.FC<IDropzone> = ({ setImages }) => {
     [setFileDropzone, toast]
   );
 
-  const addFileToTable = () => {
+  const addFileToTable = async () => {
     if (fileDropzone) {
-      const newImage: IImage = {
-        id: uuidv4(),
-        url: URL.createObjectURL(fileDropzone),
-        filename: fileDropzone.name,
-        size: fileDropzone.size,
-        timeOfUpload: new Date().toLocaleString(),
+      const reader = new FileReader();
+
+      reader.onload = async () => {
+        const base64Image = reader.result; // This is the Base64-encoded image data
+
+        // we are using images in the base64 format, so that we donot need to upload the images in the cloudinary or any other cloud storage
+        const newImage = {
+          id: uuidv4(),
+          url: base64Image, // Set the Base64-encoded image data as the URL
+          filename: fileDropzone.name,
+          size: fileDropzone.size,
+          timeOfUpload: new Date().toLocaleString(),
+        };
+
+        await postImage(newImage);
+        setFileDropzone(null);
       };
-      setImages((prevImages) => [...prevImages, newImage]);
-      setFileDropzone(null);
+
+      reader.readAsDataURL(fileDropzone);
     }
   };
+
   return (
     <div className="max-w-md mx-auto space-y-4">
       <Dropzone
@@ -70,10 +82,10 @@ const FileInput: React.FC<IDropzone> = ({ setImages }) => {
               {fileDropzone ? (
                 <div className="w-full max-w-md h-[120px] relative">
                   <Image
+                    className="object-contain"
                     src={URL.createObjectURL(fileDropzone)}
                     alt={fileDropzone.name}
-                    layout="fill"
-                    objectFit="contain"
+                    fill
                   />
                 </div>
               ) : (
@@ -101,11 +113,15 @@ const FileInput: React.FC<IDropzone> = ({ setImages }) => {
         )}
         <Button
           onClick={addFileToTable}
-          disabled={!fileDropzone}
+          disabled={!fileDropzone || isLoading}
           className="ml-auto"
           size="sm"
         >
-          <PlusCircle className="w-4 h-4 mr-2" />
+          {isLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <PlusCircle className="w-4 h-4 mr-2" />
+          )}
           Add to Table
         </Button>
       </div>

@@ -1,11 +1,11 @@
 export interface IImage {
   id: string;
-  url: string;
+  url: string | ArrayBuffer | null;
   filename: string;
   size: number;
   timeOfUpload: string;
 }
-export interface IPredictedObject {
+export interface IPredict {
   bbox: {
     x1: number;
     x2: number;
@@ -15,13 +15,19 @@ export interface IPredictedObject {
   label: string;
   score: string;
 }
-export interface IPrediction {
+export interface IAnnotatedImage {
+  id: string;
+  imageUrl: string | ArrayBuffer | null;
   title: string;
   description: string;
   timeOfPrediction: string;
-  imageUrl: string;
+  predictions: IPredict[];
 }
 export interface IPredictImageForm {
   title: string;
   description: string;
+}
+export interface GetPredictResponse {
+  description: string;
+  predictions: IPredict[];
 }

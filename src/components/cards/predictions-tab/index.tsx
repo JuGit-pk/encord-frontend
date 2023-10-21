@@ -6,16 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { IPrediction } from "@/types";
+import { IAnnotatedImage } from "@/types";
 
-interface IPredictionsTabCard {
-  predictions: IPrediction[];
-  setPredictions: React.Dispatch<React.SetStateAction<IPrediction[]>>;
+interface IProps {
+  annotatedImages: IAnnotatedImage[];
 }
-const PredictionsTabCard: React.FC<IPredictionsTabCard> = ({
-  predictions,
-  setPredictions,
-}) => {
+const PredictionsTabCard: React.FC<IProps> = ({ annotatedImages }) => {
   return (
     <Card>
       <CardHeader>
@@ -23,10 +19,7 @@ const PredictionsTabCard: React.FC<IPredictionsTabCard> = ({
         <CardDescription>Your Predictions are ready.</CardDescription>
       </CardHeader>
       <CardContent className="w-full mt-10 space-y-16">
-        <PredictionsTable
-          predictions={predictions}
-          setPredictions={setPredictions}
-        />
+        <PredictionsTable annotatedImages={annotatedImages} />
       </CardContent>
     </Card>
   );

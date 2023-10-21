@@ -13,15 +13,21 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import Form from "./form";
 import { IPredictImageForm } from "@/types";
-import { XIcon } from "lucide-react";
+import { Loader2, XIcon } from "lucide-react";
 
 interface IImagesAction {
+  isLoading?: boolean;
   onRemove: () => void;
   onPredict: (formData: IPredictImageForm) => void;
 }
 
-const RowActions: React.FC<IImagesAction> = ({ onRemove, onPredict }) => {
+const RowActions: React.FC<IImagesAction> = ({
+  onRemove,
+  onPredict,
+  isLoading,
+}) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [formData, setFormData] = useState<IPredictImageForm>({
     title: "",
     description: "",
@@ -52,7 +58,10 @@ const RowActions: React.FC<IImagesAction> = ({ onRemove, onPredict }) => {
     <>
       {/* predict button */}
       <Dialog open={isDialogOpen} onOpenChange={() => setIsDialogOpen(false)}>
-        <Button onClick={() => setIsDialogOpen(true)}>PREDICT</Button>
+        <Button onClick={() => setIsDialogOpen(true)} disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          PREDICT
+        </Button>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Predict</DialogTitle>
@@ -64,7 +73,7 @@ const RowActions: React.FC<IImagesAction> = ({ onRemove, onPredict }) => {
           <Form onChange={handleInputChange} formData={formData} />
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="destructive" className="w-20">
+              <Button variant="outline" className="w-20">
                 Cancel
               </Button>
             </DialogClose>
@@ -75,14 +84,39 @@ const RowActions: React.FC<IImagesAction> = ({ onRemove, onPredict }) => {
         </DialogContent>
       </Dialog>
       {/* remove row button */}
-      <Button
-        variant="outline"
-        className="rounded-full"
-        onClick={onRemove}
-        size="icon"
-      >
-        <XIcon size={24} />
-      </Button>
+      <Dialog open={isAlertOpen} onOpenChange={() => setIsAlertOpen(false)}>
+        <Button
+          variant="outline"
+          className="rounded-full"
+          size="icon"
+          onClick={() => setIsAlertOpen(true)}
+        >
+          <XIcon size={24} />
+        </Button>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Are you sure ?</DialogTitle>
+            <DialogDescription>This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="w-20">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                onRemove();
+                setIsAlertOpen(false);
+              }}
+              variant="destructive"
+              className="w-20"
+            >
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

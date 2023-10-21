@@ -7,19 +7,13 @@ import {
 } from "@/components/ui/card";
 import Dropzone from "@/components/dropzone";
 import ImagesTable from "@/components/tables/images";
-import { IImage, IPrediction } from "@/types";
+import { IImage } from "@/types";
 
-interface IImagesTabCard {
+interface IProps {
   images: IImage[];
-  setImages: React.Dispatch<React.SetStateAction<IImage[]>>;
-  setPredictions: React.Dispatch<React.SetStateAction<IPrediction[]>>;
 }
 
-const ImagesTabCard: React.FC<IImagesTabCard> = ({
-  images,
-  setImages,
-  setPredictions,
-}) => {
+const ImagesTabCard: React.FC<IProps> = ({ images }) => {
   return (
     <Card>
       <CardHeader>
@@ -29,12 +23,8 @@ const ImagesTabCard: React.FC<IImagesTabCard> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="w-full mt-16 space-y-16">
-        <Dropzone setImages={setImages} />
-        <ImagesTable
-          images={images}
-          setImages={setImages}
-          setPredictions={setPredictions}
-        />
+        <Dropzone />
+        <ImagesTable images={images} />
       </CardContent>
     </Card>
   );

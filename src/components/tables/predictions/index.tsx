@@ -7,22 +7,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IPrediction } from "@/types";
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { IAnnotatedImage } from "@/types";
 import RowActions from "./row-action";
+import { deleteAnnotatedImageById } from "@/api";
 
-interface IPredictionsTable {
-  predictions: IPrediction[];
-  setPredictions: React.Dispatch<React.SetStateAction<IPrediction[]>>;
+interface IProps {
+  annotatedImages: IAnnotatedImage[];
 }
-const PredictionsTable: React.FC<IPredictionsTable> = ({
-  predictions,
-  setPredictions,
-}) => {
-  const handleRemovePrediction = (idx: number) =>
-    setPredictions((prevPrediction) =>
-      prevPrediction.filter((_, i) => i !== idx)
-    );
+const PredictionsTable: React.FC<IProps> = ({ annotatedImages }) => {
+  const { toast } = useToast();
+  const handleRemoveAnnotatedImage = async (id: string) => {
+    try {
+      await deleteAnnotatedImageById(id);
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Error",
+        description: `${(error as Error).message}`,
+      });
+    }
+  };
   return (
     <Table className="overflow-auto">
       <TableCaption>List of Complete Predictions</TableCaption>
@@ -35,19 +40,19 @@ const PredictionsTable: React.FC<IPredictionsTable> = ({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {predictions.map((prediction, idx) => (
-          <TableRow key={idx}>
+        {annotatedImages.map((annotatedImage) => (
+          <TableRow key={annotatedImage.id}>
             <TableCell className="max-w-[180px] overflow-auto">
-              {prediction.title}
+              {annotatedImage.title}
             </TableCell>
             <TableCell className="max-w-[180px] overflow-auto">
-              {prediction.description}
+              {annotatedImage.description}
             </TableCell>
-            <TableCell>{prediction.timeOfPrediction}</TableCell>
+            <TableCell>{annotatedImage.timeOfPrediction}</TableCell>
             <TableCell className="flex items-center space-x-4">
               <RowActions
-                onRemove={() => handleRemovePrediction(idx)}
-                prediction={prediction}
+                onRemove={() => handleRemoveAnnotatedImage(annotatedImage.id)}
+                annotatedImage={annotatedImage}
               />
             </TableCell>
           </TableRow>
