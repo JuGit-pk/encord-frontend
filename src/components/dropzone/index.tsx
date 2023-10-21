@@ -19,6 +19,17 @@ const FileInput = () => {
       setIsLoading(true);
       const file = acceptedFiles[0];
       const fileType = file.type;
+      const fileSize = file.size;
+      const maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
+      if (fileSize > maxFileSize) {
+        setIsLoading(false);
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please upload a file smaller than 5 MB",
+        });
+        return;
+      }
       if (
         fileType === "image/png" ||
         fileType === "image/jpg" ||
@@ -96,7 +107,7 @@ const FileInput = () => {
                     drag and drop
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    PNG, JPG or JPEG
+                    PNG, JPG or JPEG up to 5MB
                   </p>
                 </div>
               )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -38,13 +38,7 @@ const RowActions: React.FC<IRowAction> = ({ onRemove, annotatedImage }) => {
             <DialogTitle>{annotatedImage.title}</DialogTitle>
           </DialogHeader>
           <DialogDescription className="flex items-center justify-center">
-            <Image
-              src={String(annotatedImage.imageUrl)}
-              alt={annotatedImage.title}
-              className="object-contain w-full lg:max-h-[30rem] xl:max-h-[50rem]"
-              width={4500}
-              height={4500}
-            />
+            <AnnotatedImage annotatedImage={annotatedImage} />
           </DialogDescription>
         </DialogContent>
       </Dialog>
@@ -86,3 +80,55 @@ const RowActions: React.FC<IRowAction> = ({ onRemove, annotatedImage }) => {
 };
 
 export default RowActions;
+
+const AnnotatedImage: React.FC<{ annotatedImage: IAnnotatedImage }> = ({
+  annotatedImage,
+}) => {
+  const imgRef = useRef(null);
+
+  // Calculate scale factors
+  const [scaleX, setScaleX] = useState(1);
+  const [scaleY, setScaleY] = useState(1);
+
+  const handleImageLoad = () => {
+    if (imgRef.current) {
+      const { naturalWidth, clientWidth, naturalHeight, clientHeight } =
+        imgRef.current;
+      setScaleX(clientWidth / naturalWidth);
+      setScaleY(clientHeight / naturalHeight);
+    }
+  };
+
+  useEffect(() => {
+    handleImageLoad();
+  }, [imgRef]);
+
+  return (
+    <div className="relative">
+      <Image
+        width={2000}
+        height={2000}
+        ref={imgRef}
+        src={String(annotatedImage.imageUrl)}
+        onLoad={handleImageLoad}
+        alt={annotatedImage.title}
+      />
+      {annotatedImage.predictions.map((prediction, index) => (
+        <div
+          key={index}
+          className="rounded-md absolute border-2 border-[#FF5733] bg-[#FF5733] bg-opacity-10"
+          style={{
+            left: prediction.bbox.x1 * scaleX,
+            top: prediction.bbox.y1 * scaleY,
+            width: (prediction.bbox.x2 - prediction.bbox.x1) * scaleX,
+            height: (prediction.bbox.y2 - prediction.bbox.y1) * scaleY,
+          }}
+        >
+          <span className="text-white bg-black rounded-bl-md rounded-tr-md px-2 py-1 absolute bottom-0 right-0 font-mono text-xs">
+            {prediction.label} ({(+prediction.score * 100).toFixed(2)}%)
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
